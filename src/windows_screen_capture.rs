@@ -1,16 +1,10 @@
 use tokio::sync::mpsc::Receiver;
 use std::slice;
-use std::time::Instant;
-use std::time::Duration;
-use std::fs::File;
-use std::io::Write;
-use windows::core::{HSTRING, IInspectable, Interface};
+use windows::core::{IInspectable, Interface};
 use windows::Foundation::TypedEventHandler;
 use windows::Graphics::Capture::{Direct3D11CaptureFrame, Direct3D11CaptureFramePool, GraphicsCaptureItem, GraphicsCaptureSession};
-use windows::Storage::{CreationCollisionOption, FileAccessMode, StorageFolder};
 use windows::Graphics::DirectX::Direct3D11::IDirect3DSurface;
 use windows::Graphics::DirectX::DirectXPixelFormat;
-use windows::Graphics::Imaging::{BitmapAlphaMode, BitmapEncoder, BitmapPixelFormat};
 use windows::Win32::Graphics::Direct3D11::{D3D11_BIND_FLAG, D3D11_CPU_ACCESS_READ, D3D11_MAP_READ,
      D3D11_RESOURCE_MISC_FLAG, D3D11_TEXTURE2D_DESC, D3D11_USAGE_STAGING, ID3D11Device, ID3D11DeviceContext, ID3D11Resource, ID3D11Texture2D};
 use crate::result::Result;
@@ -90,7 +84,7 @@ impl<'a> WindowsScreenCapture<'a> {
         Ok(copy_texture)
     }
 
-    unsafe fn get_frame_content(
+    pub unsafe fn get_frame_content(
         &mut self,
         frame: Direct3D11CaptureFrame,
     ) -> Result<(ID3D11Resource, &[u8])> {
