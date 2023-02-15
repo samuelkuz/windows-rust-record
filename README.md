@@ -20,24 +20,21 @@ I'd recommend forking this repo and using it as a starting point for your own pr
     // Gets your first display (another option is to enumerate your displays and choose one yourself)
     let primary_display = display::Display::primary_display().unwrap();
 
-    // Create a WindowsScreenCapture object, which handles a lot of the boilerplate for creating a Direct3D11CaptureFramePool and GraphicsCaptureSession 
+    // Create a WindowsScreenCapture object, 
+    // which handles the processes for creating a Direct3D11CaptureFramePool and GraphicsCaptureSession 
     let mut windows_screen_capture = windows_screen_capture::WindowsScreenCapture::new(primary_display)?;
     
-    /*
-        Once you've created a WindowsScreenCapture struct, you need to call the get_frame_receiver() method
-        This method sets up the channel for the Direct3D11CaptureFramePool to send Direct3D11CaptureFrame to the receiver
-    */
+    // Once you've created a WindowsScreenCapture struct, you need to call the get_frame_receiver() method
+    // This sets up the channel for the Direct3D11CaptureFramePool to send Direct3D11CaptureFrame to this receiver
     let receiver = windows_screen_capture.return_receiver().unwrap();
 
-    /*
-        This next method calls StartCapture() on the GraphicsCaptureSession, which kicks off actually recording frames
-        and sending the data to the receiver
-    */
+    // This next method calls StartCapture() on the GraphicsCaptureSession,
+    // which kicks off recording frames and sending the data to the receiver
     windows_screen_capture.start_capture_session();
 
     // From there you can start receiving the frames and processing
-    // This next portion is an example of receiving the Direct3D11CaptureFrame extracting the BGR8 [u8] Pixel data
-    // and writing this information to a file 
+    // This next portion is an example of receiving the Direct3D11CaptureFrame extracting
+    // the BGR8 [u8] Pixel data and writing this information to a file 
     let mut ticker = tokio::time::interval(Duration::from_millis((1000 / 30) as u64));
     
     let mut file = File::create("test.raw").unwrap();
