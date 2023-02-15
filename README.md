@@ -20,11 +20,8 @@ I'd recommend forking this repo and using it as a starting point for your own pr
     // Gets your first display (another option is to enumerate your displays and choose one yourself)
     let primary_display = display::Display::primary_display().unwrap();
 
-    // Creates the GraphicsCaptureItem needed to create the WindowsScreenCapture struct
-    let graphics_capture_item = display::create_capture_item_for_monitor(primary_display.handle)?;
-    
-    // WindowsScreenCapture::new the most relevant sections are creating a Direct3D11CaptureFramePool and GraphicsCaptureSession 
-    let mut windows_screen_capture = windows_screen_capture::WindowsScreenCapture::new(&graphics_capture_item)?;
+    // Create a WindowsScreenCapture object, which handles a lot of the boilerplate for creating a Direct3D11CaptureFramePool and GraphicsCaptureSession 
+    let mut windows_screen_capture = windows_screen_capture::WindowsScreenCapture::new(primary_display)?;
     
     /*
         Once you've created a WindowsScreenCapture struct, you need to call the get_frame_receiver() method

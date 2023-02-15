@@ -9,17 +9,19 @@ use windows::Win32::Graphics::Direct3D11::{D3D11_BIND_FLAG, D3D11_CPU_ACCESS_REA
      D3D11_RESOURCE_MISC_FLAG, D3D11_TEXTURE2D_DESC, D3D11_USAGE_STAGING, ID3D11Device, ID3D11DeviceContext, ID3D11Resource, ID3D11Texture2D};
 use crate::result::Result;
 use crate::d3d;
+use crate::display::{Display, create_capture_item_for_monitor};
 
-pub struct WindowsScreenCapture<'a> {
-    item: &'a GraphicsCaptureItem,
+pub struct WindowsScreenCapture {
+    item: GraphicsCaptureItem,
     device: ID3D11Device,
     d3d_context: ID3D11DeviceContext,
     frame_pool: Direct3D11CaptureFramePool,
     session: GraphicsCaptureSession,
 }
 
-impl<'a> WindowsScreenCapture<'a> {
-    pub fn new(item: &'a GraphicsCaptureItem) -> Result<Self> {
+impl WindowsScreenCapture {
+    pub fn new(display: &Display) -> Result<Self> {
+        let item = create_capture_item_for_monitor(display.handle)?;
         let item_size = item.Size()?;
         let (device, d3d_device, d3d_context) = d3d::create_direct3d_devices_and_context()?;
         let frame_pool = Direct3D11CaptureFramePool::CreateFreeThreaded(
@@ -29,7 +31,7 @@ impl<'a> WindowsScreenCapture<'a> {
             item_size,
         )?;
 
-        let session = frame_pool.CreateCaptureSession(item).unwrap();
+        let session = frame_pool.CreateCaptureSession(&item).unwrap();
 
         Ok(Self {
             item,
@@ -95,7 +97,7 @@ impl<'a> WindowsScreenCapture<'a> {
     }
 }
 
-impl Drop for WindowsScreenCapture<'_> {
+impl Drop for WindowsScreenCapture {
     fn drop(&mut self) {
         self.frame_pool.Close().unwrap();
     }
