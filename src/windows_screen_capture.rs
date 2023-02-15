@@ -15,7 +15,7 @@ pub struct WindowsScreenCapture<'a> {
     device: ID3D11Device,
     d3d_context: ID3D11DeviceContext,
     frame_pool: Direct3D11CaptureFramePool,
-    session: Option<GraphicsCaptureSession>,
+    session: GraphicsCaptureSession,
 }
 
 impl<'a> WindowsScreenCapture<'a> {
@@ -29,30 +29,18 @@ impl<'a> WindowsScreenCapture<'a> {
             item_size,
         )?;
 
+        let session = frame_pool.CreateCaptureSession(item).unwrap();
+
         Ok(Self {
             item,
             device,
             d3d_context,
             frame_pool,
-            session: None,
+            session,
         })
     }
 
-    pub fn create_capture_session(&mut self) {
-        if self.session.is_none() {
-            self.session = Some(self.frame_pool.CreateCaptureSession(self.item).unwrap());
-        }
-    }
-
-    pub fn return_receiver(&mut self) -> Result<Receiver<Direct3D11CaptureFrame>> {
-        match self.session {
-            Some(_) => (),
-            None => {
-                self.create_capture_session();
-                ()
-            },
-        }
-
+    pub fn get_frame_receiver(&mut self) -> Result<Receiver<Direct3D11CaptureFrame>> {
         let (sender, mut receiver) = tokio::sync::mpsc::channel::<Direct3D11CaptureFrame>(1);
 
         self.frame_pool.FrameArrived(
@@ -67,6 +55,10 @@ impl<'a> WindowsScreenCapture<'a> {
         )?;
 
         return Ok(receiver)
+    }
+
+    pub fn start_capture_session(&mut self) {
+        self.session.StartCapture().unwrap();
     }
     
     unsafe fn surface_to_texture(&mut self, surface: &IDirect3DSurface) -> Result<ID3D11Texture2D> {
