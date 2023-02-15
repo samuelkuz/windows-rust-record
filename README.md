@@ -51,12 +51,10 @@ I'd recommend forking this repo and using it as a starting point for your own pr
         // encode here
         let encoded = encoder.encode(frame_bits, frame_time).unwrap();
         file.write_all(&encoded)?;
-        self.write(&mut file, &encoded).await.unwrap();
 
         unsafe {
-            self.d3d_context.Unmap(&resource, 0);
+            windows_screen_capture.unmap_d3d_context(&resource);
         }
-
         ticker.tick().await;
     }
 

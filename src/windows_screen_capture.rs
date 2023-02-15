@@ -76,6 +76,10 @@ impl<'a> WindowsScreenCapture<'a> {
         Ok(copy_texture)
     }
 
+    pub unsafe fn unmap_d3d_context(&mut self, resource: &ID3D11Resource) {
+        self.d3d_context.Unmap(resource, 0); 
+    }
+
     pub unsafe fn get_frame_content(
         &mut self,
         frame: Direct3D11CaptureFrame,
