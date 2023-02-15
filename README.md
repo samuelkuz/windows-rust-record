@@ -38,10 +38,11 @@ I'd recommend forking this repo and using it as a starting point for your own pr
     */
     windows_screen_capture.start_capture_session();
 
-    // From there you can start receiving the frames and processing them like:
+    // From there you can start receiving the frames and processing
+    // This next portion is an example of receiving the Direct3D11CaptureFrame extracting the BGR8 [u8] Pixel data
+    // and writing this information to a file 
     let mut ticker = tokio::time::interval(Duration::from_millis((1000 / 30) as u64));
     
-    // create file
     let mut file = File::create("test.raw").unwrap();
 
     while let Some(frame) = receiver.recv().await {
