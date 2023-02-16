@@ -16,7 +16,7 @@ pub struct WindowsScreenCapture {
     device: ID3D11Device,
     d3d_context: ID3D11DeviceContext,
     frame_pool: Direct3D11CaptureFramePool,
-    session: GraphicsCaptureSession,
+    pub session: GraphicsCaptureSession,
 }
 
 impl WindowsScreenCapture {
