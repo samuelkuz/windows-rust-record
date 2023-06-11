@@ -9,7 +9,7 @@ use windows::Win32::Graphics::Direct3D11::{D3D11_BIND_FLAG, D3D11_CPU_ACCESS_REA
      D3D11_RESOURCE_MISC_FLAG, D3D11_TEXTURE2D_DESC, D3D11_USAGE_STAGING, ID3D11Device, ID3D11DeviceContext, ID3D11Resource, ID3D11Texture2D};
 use crate::result::Result;
 use crate::d3d;
-use crate::display::{Display, create_capture_item_for_monitor};
+use crate::display::{Display, create_capture_item_for_monitor, };
 
 pub struct WindowsScreenCapture {
     item: GraphicsCaptureItem,
@@ -40,6 +40,12 @@ impl WindowsScreenCapture {
             frame_pool,
             session,
         })
+    }
+
+    pub fn new_primary_capture() -> Result<Self> {
+        let primary_display = Display::primary_display().unwrap();
+
+        WindowsScreenCapture::new(&primary_display)
     }
 
     pub fn get_frame_receiver(&mut self) -> Result<Receiver<Direct3D11CaptureFrame>> {

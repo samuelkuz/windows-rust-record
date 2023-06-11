@@ -1,9 +1,12 @@
 # Windows Rust Record
 Basic wrapper around the Windows API to retrieve frame data from a monitor's display.
 
-The goal of this project is to help any future developers easily utilize the Windows API to record their screen.
+The goal of this project is to help any future developers easily interact with the Windows API to receive a displays BGRA8 frame data. (This will allow a user to take screenshots, record, etc.)
 
-The struct `WindowsScreenCapture` gets you started on retrieving the [u8] BGR8 Pixel Data from a display.
+The struct `WindowsScreenCapture` gets you started on retrieving the [u8] BGRA8 Pixel Data from a display.
+
+This is accomplished by initializing the WindowsScreenCapture Struct to find a monitor display to track and send the frame BGRA8 data through a channel.
+
 
 ## Build
 * This will only build and work on Windows OS
@@ -12,20 +15,30 @@ I'd recommend forking this repo and using it as a starting point for your own pr
 
 ## Example
 ```
-    // Gets your first display (another option is to enumerate your displays and choose one yourself)
-    let primary_display = display::Display::primary_display().unwrap();
+    // INITIALIZING THE WindowsScreenCapture Struct
 
-    // Create a WindowsScreenCapture object, 
-    // which handles the processes for creating a Direct3D11CaptureFramePool and GraphicsCaptureSession 
-    let mut windows_screen_capture = windows_screen_capture::WindowsScreenCapture::new(primary_display)?;
-    
-    // Once you've created a WindowsScreenCapture struct, you need to call the get_frame_receiver() method
-    // This sets up the channel for the Direct3D11CaptureFramePool to send Direct3D11CaptureFrame to this receiver
-    let receiver = windows_screen_capture.return_receiver().unwrap();
+    // 1. Create a WindowsScreenCapture for your primary display
+    // This struct is utilized to begin capturing your display data and sending it through a channel (which you should consume from)
+    let mut first_windows_screen_capture = WindowsScreenCapture::new_primary_capture()?;
 
-    // This next method calls StartCapture() on the GraphicsCaptureSession,
-    // which kicks off recording frames and sending the data to the receiver
-    windows_screen_capture.start_capture_session();
+    // 2. Manually select the display you want to capture (either utilizing the method Display::primary_display() or Display::enumerate_displays())
+    let displays = Display::enumerate_displays()?;
+    let display = displays.iter().nth(args.display).unwrap();
+
+    // Create a WindowsScreenCapture object
+    let mut second_windows_screen_capture = windows_screen_capture::WindowsScreenCapture::new(display)?;
+
+
+    // USING THE WindowsScreenCapture Struct
+
+    // Start recording the display frame data via: start_capture_session(), this will not actually start sending data through a channel but will begin the process of actually sending the frame data to our program.
+    first_windows_screen_capture.start_capture_session();
+
+    // Use the get_frame_receiver() method to set up the channel and get the receiver (the receiver will hold the BGRA8 [u8] data)
+    let mut receiver = first_windows_screen_capture.get_frame_receiver().unwrap();
+
+
+    // PROCESSING via the receiver
 
     // From there you can start receiving the frames and processing
     // This next portion is an example of receiving the Direct3D11CaptureFrame extracting
@@ -36,19 +49,19 @@ I'd recommend forking this repo and using it as a starting point for your own pr
 
     while let Some(frame) = receiver.recv().await {
         let frame_time = frame.SystemRelativeTime()?.Duration;
-        let (resource, frame_bits) = unsafe { windows_screen_capture.get_frame_content(frame)? };
+        let (resource, frame_bits) = unsafe { first_windows_screen_capture.get_frame_content(frame)? };
 
         // encode here
         let encoded = encoder.encode(frame_bits, frame_time).unwrap();
         file.write_all(&encoded)?;
 
         unsafe {
-            windows_screen_capture.unmap_d3d_context(&resource);
+            first_windows_screen_capture.unmap_d3d_context(&resource);
         }
         ticker.tick().await;
     }
 
-    session.Close()?;
+    first_windows_screen_capture.session.Close().unwrap();
 ```
 
 * Example project of mine using this crate: https://github.com/samuelkuz/streaming-server
